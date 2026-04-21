@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Speech to Text</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+<div class="app-container">
+
+<!-- LEFT PANEL -->
+<div class="left-panel">
+
+<h1>🎧 Speech to Text</h1>
+<p class="subtitle">Upload audio and convert to text</p>
+
+<form>
+
+<label>Upload Audio</label>
+<input type="file" id="audio" required class="file-input">
+
+<button type="button" onclick="uploadAudio()">Convert</button>
+
+</form>
+
+<div id="progress-container" style="display:none;">
+<p>Processing audio...</p>
+
+<div class="progress-bar">
+<div class="progress" id="progress"></div>
+</div>
+
+<p id="progress-text">0%</p>
+</div>
+
+</div>
+
+<!-- RIGHT PANEL -->
+<div class="right-panel">
+
+<!-- EMPTY STATE -->
+<div id="empty-state">
+
+<div class="empty-box">
+<h2>🤖 AI Ready</h2>
+
+<p>
+Upload audio untuk mulai konversi.<br>
+Hasil transkrip akan muncul di sini.
+</p>
+
+<div class="pulse"></div>
+
+</div>
+
+</div>
+
+<!-- RESULT -->
+<div id="result-container" style="display:none;">
+
+<div class="result-box">
+<h2>📝 Transcript</h2>
+<p id="transcript"></p>
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+function uploadAudio(){
+
+let fileInput = document.getElementById("audio");
+
+if(!fileInput.files.length){
+alert("Pilih file dulu");
+return;
+}
+
+// 🔥 RESET UI
+document.getElementById("empty-state").style.display = "none";
+document.getElementById("result-container").style.display = "none";
+
+let formData = new FormData();
+formData.append("audio", fileInput.files[0]);
+
+document.getElementById("progress-container").style.display = "block";
+
+document.getElementById("progress").style.width = "0%";
+document.getElementById("progress-text").innerText = "0%";
+
+fetch("/", {
+method:"POST",
+body:formData
+})
+.then(res => res.json())
+.then(data => {
+if(data.status === "started"){
+trackProgress();
+}
+});
+}
+
+function trackProgress(){
+
+let interval = setInterval(() => {
+
+fetch("/progress")
+.then(res => res.json())
+.then(data => {
+
+let value = data.progress;
+
+document.getElementById("progress").style.width = value + "%";
+document.getElementById("progress-text").innerText = value + "%";
+
+if(!data.processing){
+
+clearInterval(interval);
+
+// 🔥 TAMPILKAN HASIL
+document.getElementById("result-container").style.display = "flex";
+document.getElementById("transcript").innerText = data.transcript;
+
+}
+
+});
+
+}, 800);
+
+}
+
+</script>
+
+</body>
+</html>
