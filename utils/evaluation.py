@@ -29,7 +29,6 @@ def calculate_metrics(ref, hyp):
 
     w = wer(ref, hyp)
     c = cer(ref, hyp)
-
     acc = (1 - w) * 100
 
     return {
